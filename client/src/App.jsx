@@ -44,11 +44,12 @@ function AppRouter() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(129,140,248,0.25),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(236,72,153,0.18),transparent_26%),radial-gradient(circle_at_50%_70%,rgba(34,211,238,0.16),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,rgba(129,140,248,0.24),transparent_36%),radial-gradient(circle_at_92%_8%,rgba(236,72,153,0.16),transparent_28%),radial-gradient(circle_at_45%_78%,rgba(34,211,238,0.12),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.55),transparent_28%,rgba(255,255,255,0.2))] dark:bg-[linear-gradient(to_bottom,rgba(15,23,42,0.55),transparent_24%,rgba(2,6,23,0.55))]" />
 
       <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
         {pathname === '/auth' && <AuthPage onAuthenticated={() => navigate('/dashboard')} />}
 
         {pathname === '/dashboard' && (

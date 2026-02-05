@@ -13,21 +13,21 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100;
+  @apply bg-slate-50 text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100;
 }
 
 .glass-card {
-  @apply rounded-3xl border border-white/35 bg-white/60 p-6 shadow-glass backdrop-blur-xl transition dark:border-slate-800/70 dark:bg-slate-900/70;
+  @apply rounded-[1.75rem] border border-white/45 bg-white/65 p-5 shadow-glass backdrop-blur-xl transition duration-300 dark:border-slate-800/70 dark:bg-slate-900/70 sm:p-6;
 }
 
 .input {
-  @apply w-full rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none ring-0 transition placeholder:text-slate-400 focus:border-indigo-400 focus:shadow-sm dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100;
+  @apply w-full rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-800 outline-none ring-0 transition placeholder:text-slate-400 focus:border-indigo-400 focus:shadow-sm focus:shadow-indigo-500/10 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100;
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-3 font-medium text-white shadow-lg shadow-indigo-500/30 transition hover:-translate-y-0.5 hover:shadow-indigo-500/40;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-500 to-violet-500 px-5 py-3 font-medium text-white shadow-lg shadow-indigo-500/30 transition duration-200 hover:-translate-y-0.5 hover:from-indigo-400 hover:to-violet-500 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-70;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300/80 bg-white/80 px-4 py-3 font-medium text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:text-indigo-300;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300/80 bg-white/80 px-4 py-3 font-medium text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:text-indigo-300;
 }

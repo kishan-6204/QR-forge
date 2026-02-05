@@ -90,21 +90,21 @@ export default function GeneratorCard({
     <section id="generator" className="glass-card">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">QR Generator</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Select a format and generate instantly.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">QR Generator</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Select a format, customize the look, and generate instantly.</p>
         </div>
       </div>
 
-      <div className="mb-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {qrTypes.map((item) => (
           <button
             key={item.key}
             type="button"
             onClick={() => setType(item.key)}
-            className={`rounded-2xl border p-3 text-left transition ${
+            className={`rounded-2xl border p-3 text-left transition duration-200 ${
               type === item.key
-                ? 'border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-300'
-                : 'border-slate-200 bg-white/70 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-800/60'
+                ? 'border-indigo-400 bg-indigo-50/90 text-indigo-700 shadow-sm shadow-indigo-500/10 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-300'
+                : 'border-slate-200 bg-white/70 hover:-translate-y-0.5 hover:border-indigo-300 dark:border-slate-700 dark:bg-slate-800/60'
             }`}
           >
             <p className="font-semibold">{item.label}</p>
@@ -135,10 +135,10 @@ export default function GeneratorCard({
         </button>
       </form>
 
-      <div className="mt-8 space-y-4 rounded-2xl border border-slate-200/80 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+      <div className="mt-8 space-y-4 rounded-2xl border border-slate-200/80 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-800/60 sm:p-5">
         <h3 className="font-semibold text-slate-800 dark:text-slate-100">Preview</h3>
 
-        <div className="flex min-h-72 items-center justify-center rounded-2xl border border-dashed border-slate-300 p-6 dark:border-slate-600">
+        <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-slate-300 p-5 dark:border-slate-600 sm:min-h-72 sm:p-6">
           {qrImage ? (
             <img src={qrImage} alt="Generated QR" className="w-full max-w-xs rounded-xl bg-white p-2 shadow" />
           ) : (

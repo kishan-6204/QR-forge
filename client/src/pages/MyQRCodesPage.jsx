@@ -70,9 +70,9 @@ export default function MyQRCodesPage({ onNavigate }) {
   };
 
   return (
-    <section className="glass-card space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-2xl font-bold">My QR Codes</h2>
+    <section className="glass-card space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My QR Codes</h2>
         <button type="button" className="btn-secondary" onClick={() => onNavigate('/dashboard')}>
           <ArrowLeft size={16} /> Back to Dashboard
         </button>
@@ -83,9 +83,9 @@ export default function MyQRCodesPage({ onNavigate }) {
       ) : items.length === 0 ? (
         <p className="text-sm text-slate-500">No QR codes saved yet. Generate one from your dashboard.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((entry) => (
-            <article key={entry.id} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+            <article key={entry.id} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/60">
               <img src={entry.image} alt={`QR ${entry.type}`} className="mb-3 w-full rounded-xl bg-white p-2" />
               <p className="text-sm font-semibold capitalize">Type: {entry.type}</p>
               <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-300">Data: {JSON.stringify(parseData(entry.data))}</p>

@@ -101,16 +101,18 @@ export default function DashboardPage({ onNavigate }) {
 
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100">
+      <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="inline-flex items-center gap-2 self-start rounded-full border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100">
           <Zap size={16} className="text-indigo-500" /> QR Forge Dashboard
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" className="btn-secondary" onClick={() => onNavigate('/my-qrcodes')}>
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
+          <button type="button" className="btn-secondary col-span-2 sm:col-auto" onClick={() => onNavigate('/my-qrcodes')}>
             <List size={16} /> My QR Codes
           </button>
-          <ThemeToggle darkMode={darkMode} onToggle={() => setDarkMode((v) => !v)} />
-          <button type="button" className="btn-secondary" onClick={() => { signOut(); onNavigate('/auth'); }}>
+          <div className="col-span-1">
+            <ThemeToggle darkMode={darkMode} onToggle={() => setDarkMode((v) => !v)} />
+          </div>
+          <button type="button" className="btn-secondary col-span-1" onClick={() => { signOut(); onNavigate('/auth'); }}>
             Logout
           </button>
         </div>

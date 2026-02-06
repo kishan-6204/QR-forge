@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Chrome, LockKeyhole, QrCode, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -9,22 +9,7 @@ export default function AuthPage({ onAuthenticated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleReady, setGoogleReady] = useState(Boolean(window.google?.accounts?.id));
   const [googleLoading, setGoogleLoading] = useState(false);
-
-  useEffect(() => {
-    if (googleReady) return;
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setGoogleReady(true);
-    script.onerror = () => setGoogleReady(false);
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [googleReady]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -47,40 +32,10 @@ export default function AuthPage({ onAuthenticated }) {
   };
 
   const handleGoogleSignIn = async () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      toast.error('Missing Google Client ID configuration.');
-      return;
-    }
-
-    if (!window.google?.accounts?.id) {
-      toast.error('Google sign-in is not available yet.');
-      return;
-    }
-
     setGoogleLoading(true);
 
     try {
-      const credential = await new Promise((resolve, reject) => {
-        let finished = false;
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            finished = true;
-            resolve(response.credential);
-          }
-        });
-
-        window.google.accounts.id.prompt((notification) => {
-          if (finished) return;
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            finished = true;
-            reject(new Error('Google sign-in was dismissed.'));
-          }
-        });
-      });
-
-      await signInWithGoogle({ credential, requestUri: window.location.origin });
+      await signInWithGoogle();
       toast.success('Signed in with Google!');
       onAuthenticated();
     } catch (error) {
@@ -131,7 +86,7 @@ export default function AuthPage({ onAuthenticated }) {
           type="button"
           className="btn-secondary w-full"
           onClick={handleGoogleSignIn}
-          disabled={googleLoading || !googleReady}
+          disabled={googleLoading}
         >
           <Chrome size={18} />
           {googleLoading ? 'Connecting to Google...' : 'Continue with Google'}

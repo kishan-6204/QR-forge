@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import AppShell from './components/AppShell';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import MyQRCodesPage from './pages/MyQRCodesPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import useTheme from './hooks/useTheme';
 
 const getPathname = () => window.location.pathname;
 
 function AppRouter() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
   const [pathname, setPathname] = useState(getPathname);
+  const { darkMode, setDarkMode } = useTheme(profile?.theme);
 
   const navigate = (path) => {
     if (path !== window.location.pathname) {
@@ -36,7 +41,7 @@ function AppRouter() {
   }, [isAuthenticated, pathname]);
 
   useEffect(() => {
-    const known = ['/auth', '/dashboard', '/my-qrcodes'];
+    const known = ['/auth', '/dashboard', '/my-qrcodes', '/favorites', '/profile', '/settings'];
     if (!known.includes(pathname)) {
       navigate(isAuthenticated ? '/dashboard' : '/auth');
     }
@@ -54,13 +59,41 @@ function AppRouter() {
 
         {pathname === '/dashboard' && (
           <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <DashboardPage onNavigate={navigate} />
+            <AppShell onNavigate={navigate} currentPath={pathname}>
+              <DashboardPage onNavigate={navigate} />
+            </AppShell>
           </ProtectedRoute>
         )}
 
         {pathname === '/my-qrcodes' && (
           <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <MyQRCodesPage onNavigate={navigate} />
+            <AppShell onNavigate={navigate} currentPath={pathname}>
+              <MyQRCodesPage onNavigate={navigate} />
+            </AppShell>
+          </ProtectedRoute>
+        )}
+
+        {pathname === '/favorites' && (
+          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
+            <AppShell onNavigate={navigate} currentPath={pathname}>
+              <MyQRCodesPage onNavigate={navigate} initialFilter="favorites" title="Favorites" />
+            </AppShell>
+          </ProtectedRoute>
+        )}
+
+        {pathname === '/profile' && (
+          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
+            <AppShell onNavigate={navigate} currentPath={pathname}>
+              <ProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        )}
+
+        {pathname === '/settings' && (
+          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
+            <AppShell onNavigate={navigate} currentPath={pathname}>
+              <SettingsPage darkMode={darkMode} setDarkMode={setDarkMode} />
+            </AppShell>
           </ProtectedRoute>
         )}
       </main>

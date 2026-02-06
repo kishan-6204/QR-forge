@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { LockKeyhole, QrCode, Sparkles, ShieldCheck } from 'lucide-react';
+import { Chrome, LockKeyhole, QrCode, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthPage({ onAuthenticated }) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInWithGoogle, signUp } = useAuth();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleReady, setGoogleReady] = useState(Boolean(window.google?.accounts?.id));
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (googleReady) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGoogleReady(true);
+    script.onerror = () => setGoogleReady(false);
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [googleReady]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -27,6 +43,50 @@ export default function AuthPage({ onAuthenticated }) {
       toast.error(error.message || 'Authentication failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast.error('Missing Google Client ID configuration.');
+      return;
+    }
+
+    if (!window.google?.accounts?.id) {
+      toast.error('Google sign-in is not available yet.');
+      return;
+    }
+
+    setGoogleLoading(true);
+
+    try {
+      const credential = await new Promise((resolve, reject) => {
+        let finished = false;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            finished = true;
+            resolve(response.credential);
+          }
+        });
+
+        window.google.accounts.id.prompt((notification) => {
+          if (finished) return;
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            finished = true;
+            reject(new Error('Google sign-in was dismissed.'));
+          }
+        });
+      });
+
+      await signInWithGoogle({ credential, requestUri: window.location.origin });
+      toast.success('Signed in with Google!');
+      onAuthenticated();
+    } catch (error) {
+      toast.error(error.message || 'Google sign-in failed');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -65,6 +125,22 @@ export default function AuthPage({ onAuthenticated }) {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{mode === 'signin' ? 'Sign in to QR Forge' : 'Create your QR Forge account'}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-300">Email/password authentication powered by Firebase.</p>
           </div>
+        </div>
+
+        <button
+          type="button"
+          className="btn-secondary w-full"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading || !googleReady}
+        >
+          <Chrome size={18} />
+          {googleLoading ? 'Connecting to Google...' : 'Continue with Google'}
+        </button>
+
+        <div className="my-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+          or
+          <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
         </div>
 
         <form className="space-y-4" onSubmit={onSubmit}>

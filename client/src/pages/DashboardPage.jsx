@@ -1,27 +1,46 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { List, Zap } from 'lucide-react';
 import LandingHero from '../components/LandingHero';
-import ThemeToggle from '../components/ThemeToggle';
 import GeneratorCard from '../components/GeneratorCard';
 import { initialState } from '../lib/qrTypes';
-import useTheme from '../hooks/useTheme';
 import { useAuth } from '../context/AuthContext';
 import { firestoreApi } from '../lib/firebaseClient';
 
-const withCustomization = (entry) => ({ ...entry, size: 512, darkColor: '#111827' });
-const buildState = Object.fromEntries(Object.entries(initialState).map(([k, v]) => [k, withCustomization(v)]));
+const withCustomization = (entry, defaults) => ({ ...entry, size: defaults.size, darkColor: defaults.color });
+const buildState = (defaults) =>
+  Object.fromEntries(Object.entries(initialState).map(([k, v]) => [k, withCustomization(v, defaults)]));
 
 export default function DashboardPage({ onNavigate }) {
-  const { darkMode, setDarkMode } = useTheme();
-  const { session, signOut } = useAuth();
+  const { session, profile } = useAuth();
+  const defaults = useMemo(
+    () => ({
+      size: profile?.defaultQrSize || 512,
+      color: profile?.defaultQrColor || '#111827'
+    }),
+    [profile?.defaultQrColor, profile?.defaultQrSize]
+  );
   const [type, setType] = useState('url');
-  const [values, setValues] = useState(buildState);
+  const [values, setValues] = useState(() => buildState(defaults));
   const [qrTitle, setQrTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [qrImage, setQrImage] = useState('');
 
   const current = useMemo(() => values[type], [type, values]);
+
+  useEffect(() => {
+    setValues((prev) => {
+      const next = { ...prev };
+      Object.keys(initialState).forEach((key) => {
+        next[key] = {
+          ...prev[key],
+          size: defaults.size,
+          darkColor: defaults.color
+        };
+      });
+      return next;
+    });
+  }, [defaults.color, defaults.size]);
 
   const handleFieldChange = (field, value) => {
     setValues((prev) => ({
@@ -113,12 +132,6 @@ export default function DashboardPage({ onNavigate }) {
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
           <button type="button" className="btn-secondary col-span-2 sm:col-auto" onClick={() => onNavigate('/my-qrcodes')}>
             <List size={16} /> My QR Codes
-          </button>
-          <div className="col-span-1">
-            <ThemeToggle darkMode={darkMode} onToggle={() => setDarkMode((v) => !v)} />
-          </div>
-          <button type="button" className="btn-secondary col-span-1" onClick={() => { signOut(); onNavigate('/auth'); }}>
-            Logout
           </button>
         </div>
       </header>

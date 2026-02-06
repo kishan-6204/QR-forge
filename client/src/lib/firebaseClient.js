@@ -21,6 +21,8 @@ const parseIdentityResponse = async (response) => {
   return {
     uid: payload.localId,
     email: payload.email,
+    displayName: payload.displayName || '',
+    photoURL: payload.photoUrl || '',
     idToken: payload.idToken,
     refreshToken: payload.refreshToken,
     expiresAt: Date.now() + Number(payload.expiresIn || 3600) * 1000
@@ -52,12 +54,159 @@ const docToQrCode = (document) => {
   };
 };
 
+const parseNumberValue = (value, fallback) => {
+  if (value === undefined || value === null) return fallback;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const docToUserProfile = (document) => {
+  const fields = document.fields || {};
+  return {
+    uid: fields.uid?.stringValue || document.name.split('/').pop(),
+    name: fields.name?.stringValue || '',
+    email: fields.email?.stringValue || '',
+    photoURL: fields.photoURL?.stringValue || '',
+    createdAt: fields.createdAt?.stringValue || '',
+    theme: fields.theme?.stringValue || 'light',
+    defaultQrColor: fields.defaultQrColor?.stringValue || '#111827',
+    defaultQrSize: parseNumberValue(fields.defaultQrSize?.integerValue, 512)
+  };
+};
+
 export const firebaseAuthApi = {
   signUp: (email, password) => callIdentityToolkit('signUp', { email, password }),
-  signIn: (email, password) => callIdentityToolkit('signInWithPassword', { email, password })
+  signIn: (email, password) => callIdentityToolkit('signInWithPassword', { email, password }),
+  signInWithGoogle: (idToken, requestUri) =>
+    callIdentityToolkit('signInWithIdp', {
+      requestUri,
+      postBody: `id_token=${encodeURIComponent(idToken)}&providerId=google.com`,
+      returnIdpCredential: true
+    })
 };
 
 export const firestoreApi = {
+  async getUserProfile({ idToken, uid }) {
+    ensureConfig();
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/users/${uid}`,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`
+        }
+      }
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message || 'Failed to fetch user profile');
+    }
+
+    return docToUserProfile(payload);
+  },
+
+  async ensureUserProfile({ idToken, profile }) {
+    const existing = await this.getUserProfile({ idToken, uid: profile.uid });
+    if (existing) {
+      return existing;
+    }
+    return this.createUserProfile({ idToken, profile });
+  },
+
+  async createUserProfile({ idToken, profile }) {
+    ensureConfig();
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/users/${profile.uid}?currentDocument.exists=false`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            uid: { stringValue: profile.uid },
+            name: { stringValue: profile.name || '' },
+            email: { stringValue: profile.email || '' },
+            photoURL: { stringValue: profile.photoURL || '' },
+            createdAt: { stringValue: profile.createdAt || new Date().toISOString() },
+            theme: { stringValue: profile.theme || 'light' },
+            defaultQrColor: { stringValue: profile.defaultQrColor || '#111827' },
+            defaultQrSize: { integerValue: String(profile.defaultQrSize || 512) }
+          }
+        })
+      }
+    );
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message || 'Failed to create user profile');
+    }
+
+    return docToUserProfile(payload);
+  },
+
+  async updateUserProfile({ idToken, uid, updates }) {
+    ensureConfig();
+
+    const params = new URLSearchParams();
+    const fields = {};
+
+    if (updates.name !== undefined) {
+      params.append('updateMask.fieldPaths', 'name');
+      fields.name = { stringValue: updates.name || '' };
+    }
+
+    if (updates.photoURL !== undefined) {
+      params.append('updateMask.fieldPaths', 'photoURL');
+      fields.photoURL = { stringValue: updates.photoURL || '' };
+    }
+
+    if (updates.theme !== undefined) {
+      params.append('updateMask.fieldPaths', 'theme');
+      fields.theme = { stringValue: updates.theme || 'light' };
+    }
+
+    if (updates.defaultQrColor !== undefined) {
+      params.append('updateMask.fieldPaths', 'defaultQrColor');
+      fields.defaultQrColor = { stringValue: updates.defaultQrColor || '#111827' };
+    }
+
+    if (updates.defaultQrSize !== undefined) {
+      params.append('updateMask.fieldPaths', 'defaultQrSize');
+      fields.defaultQrSize = { integerValue: String(updates.defaultQrSize || 512) };
+    }
+
+    if (!Object.keys(fields).length) {
+      return null;
+    }
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/users/${uid}?${params.toString()}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fields })
+      }
+    );
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message || 'Failed to update user profile');
+    }
+
+    return docToUserProfile(payload);
+  },
+
   async saveQrCode({ idToken, uid, entry }) {
     ensureConfig();
 

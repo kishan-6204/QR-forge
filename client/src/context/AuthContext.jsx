@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo, useState } from 'react';
-import { firebaseAuthApi } from '../lib/firebaseClient';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { firebaseAuthApi, firestoreApi } from '../lib/firebaseClient';
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = 'qrforge-auth';
@@ -19,6 +19,8 @@ const getInitialAuth = () => {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(getInitialAuth);
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(Boolean(session?.idToken));
 
   const persist = (nextSession) => {
     setSession(nextSession);
@@ -29,19 +31,92 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const ensureProfile = async (nextSession) => {
+    if (!nextSession?.idToken) return null;
+    setProfileLoading(true);
+    try {
+      const profilePayload = {
+        uid: nextSession.uid,
+        email: nextSession.email,
+        name: nextSession.displayName || nextSession.email?.split('@')[0] || 'QR Forge User',
+        photoURL: nextSession.photoURL || '',
+        createdAt: new Date().toISOString(),
+        theme: 'light',
+        defaultQrColor: '#111827',
+        defaultQrSize: 512
+      };
+      const nextProfile = await firestoreApi.ensureUserProfile({
+        idToken: nextSession.idToken,
+        profile: profilePayload
+      });
+      setProfile(nextProfile);
+      return nextProfile;
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   const signIn = async ({ email, password }) => {
     const nextSession = await firebaseAuthApi.signIn(email, password);
     persist(nextSession);
+    await ensureProfile(nextSession);
     return nextSession;
   };
 
   const signUp = async ({ email, password }) => {
     const nextSession = await firebaseAuthApi.signUp(email, password);
     persist(nextSession);
+    await ensureProfile(nextSession);
     return nextSession;
   };
 
-  const signOut = () => persist(null);
+  const signInWithGoogle = async ({ credential, requestUri }) => {
+    const nextSession = await firebaseAuthApi.signInWithGoogle(credential, requestUri);
+    persist(nextSession);
+    await ensureProfile(nextSession);
+    return nextSession;
+  };
+
+  const signOut = () => {
+    persist(null);
+    setProfile(null);
+  };
+
+  const refreshProfile = async () => {
+    if (!session?.idToken) return null;
+    setProfileLoading(true);
+    try {
+      const nextProfile = await firestoreApi.getUserProfile({ idToken: session.idToken, uid: session.uid });
+      setProfile(nextProfile);
+      return nextProfile;
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const updateProfile = async (updates) => {
+    if (!session?.idToken) {
+      throw new Error('No active session found');
+    }
+    const nextProfile = await firestoreApi.updateUserProfile({
+      idToken: session.idToken,
+      uid: session.uid,
+      updates
+    });
+    if (nextProfile) {
+      setProfile(nextProfile);
+    }
+    return nextProfile;
+  };
+
+  useEffect(() => {
+    if (!session?.idToken) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+    ensureProfile(session);
+  }, [session?.idToken]);
 
   const value = useMemo(
     () => ({
@@ -49,9 +124,14 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(session?.idToken),
       signIn,
       signUp,
-      signOut
+      signInWithGoogle,
+      signOut,
+      profile,
+      profileLoading,
+      refreshProfile,
+      updateProfile
     }),
-    [session]
+    [session, profile, profileLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

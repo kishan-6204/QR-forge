@@ -61,12 +61,12 @@ function LoadingSkeletons() {
   );
 }
 
-export default function MyQRCodesPage({ onNavigate }) {
+export default function MyQRCodesPage({ onNavigate, initialFilter = 'all', title = 'My QR Codes' }) {
   const { session } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [editingId, setEditingId] = useState('');
   const [editingTitle, setEditingTitle] = useState('');
 
@@ -85,6 +85,10 @@ export default function MyQRCodesPage({ onNavigate }) {
   useEffect(() => {
     loadItems();
   }, []);
+
+  useEffect(() => {
+    setActiveFilter(initialFilter);
+  }, [initialFilter]);
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -207,7 +211,7 @@ export default function MyQRCodesPage({ onNavigate }) {
   return (
     <section className="glass-card space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My QR Codes</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
         <button type="button" className="btn-secondary" onClick={() => onNavigate('/dashboard')}>
           <ArrowLeft size={16} /> Back to Dashboard
         </button>

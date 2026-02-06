@@ -43,10 +43,12 @@ const docToQrCode = (document) => {
   const fields = document.fields || {};
   return {
     id: fields.id?.stringValue || document.name.split('/').pop(),
+    title: fields.title?.stringValue || 'Untitled QR',
     type: fields.type?.stringValue || 'unknown',
     data: fields.data?.stringValue || '{}',
     image: fields.image?.stringValue || '',
-    createdAt: fields.createdAt?.stringValue || new Date(0).toISOString()
+    createdAt: fields.createdAt?.stringValue || new Date(0).toISOString(),
+    favorite: fields.favorite?.booleanValue ?? false
   };
 };
 
@@ -70,10 +72,12 @@ export const firestoreApi = {
         body: JSON.stringify({
           fields: {
             id: { stringValue: entry.id },
+            title: { stringValue: entry.title || 'Untitled QR' },
             type: { stringValue: entry.type },
             data: { stringValue: entry.data },
             image: { stringValue: entry.image },
-            createdAt: { stringValue: entry.createdAt }
+            createdAt: { stringValue: entry.createdAt },
+            favorite: { booleanValue: Boolean(entry.favorite) }
           }
         })
       }
@@ -124,5 +128,45 @@ export const firestoreApi = {
       const payload = await response.json();
       throw new Error(payload.error?.message || 'Failed to delete QR code');
     }
+  },
+
+  async updateQrCode({ idToken, uid, id, updates }) {
+    ensureConfig();
+
+    const params = new URLSearchParams();
+    const fields = {};
+
+    if (updates.title !== undefined) {
+      params.append('updateMask.fieldPaths', 'title');
+      fields.title = { stringValue: updates.title || 'Untitled QR' };
+    }
+
+    if (updates.favorite !== undefined) {
+      params.append('updateMask.fieldPaths', 'favorite');
+      fields.favorite = { booleanValue: Boolean(updates.favorite) };
+    }
+
+    if (!Object.keys(fields).length) {
+      return null;
+    }
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/users/${uid}/qrcodes/${id}?${params.toString()}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fields })
+      }
+    );
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message || 'Failed to update QR code');
+    }
+
+    return docToQrCode(payload);
   }
 };

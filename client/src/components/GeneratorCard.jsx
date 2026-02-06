@@ -17,6 +17,8 @@ export default function GeneratorCard({
   onFieldChange,
   onSubmit,
   loading,
+  qrTitle,
+  onTitleChange,
   qrImage,
   onDownload,
   onCopy
@@ -114,6 +116,15 @@ export default function GeneratorCard({
       </div>
 
       <form className="space-y-5" onSubmit={onSubmit}>
+        <Field label="QR Title (optional)">
+          <input
+            className="input"
+            placeholder="Untitled QR"
+            value={qrTitle}
+            onChange={(e) => onTitleChange(e.target.value)}
+          />
+        </Field>
+
         {renderFields()}
 
         <div className="grid gap-4 sm:grid-cols-2">

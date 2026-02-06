@@ -1,7 +1,15 @@
+import { initializeApp } from 'firebase/app';
+import { GoogleAuthProvider, getAuth, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
 };
+
+if (!firebaseConfig.authDomain && firebaseConfig.projectId) {
+  firebaseConfig.authDomain = `${firebaseConfig.projectId}.firebaseapp.com`;
+}
 
 const requiredKeys = ['apiKey', 'projectId'];
 
@@ -41,6 +49,33 @@ const callIdentityToolkit = async (method, body) => {
   return parseIdentityResponse(response);
 };
 
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+const mapFirebaseUser = async (user) => {
+  const tokenResult = await user.getIdTokenResult();
+  const expiresAt = tokenResult?.expirationTime ? new Date(tokenResult.expirationTime).getTime() : Date.now() + 3600 * 1000;
+
+  return {
+    uid: user.uid,
+    email: user.email || '',
+    displayName: user.displayName || '',
+    photoURL: user.photoURL || '',
+    idToken: tokenResult?.token || '',
+    refreshToken: user.refreshToken || '',
+    expiresAt
+  };
+};
+
+export const signInWithGoogle = async () => {
+  ensureConfig();
+  const result = await signInWithPopup(auth, googleProvider);
+  return mapFirebaseUser(result.user);
+};
+
+export const signOutAuth = () => firebaseSignOut(auth);
+
 const docToQrCode = (document) => {
   const fields = document.fields || {};
   return {
@@ -76,13 +111,7 @@ const docToUserProfile = (document) => {
 
 export const firebaseAuthApi = {
   signUp: (email, password) => callIdentityToolkit('signUp', { email, password }),
-  signIn: (email, password) => callIdentityToolkit('signInWithPassword', { email, password }),
-  signInWithGoogle: (idToken, requestUri) =>
-    callIdentityToolkit('signInWithIdp', {
-      requestUri,
-      postBody: `id_token=${encodeURIComponent(idToken)}&providerId=google.com`,
-      returnIdpCredential: true
-    })
+  signIn: (email, password) => callIdentityToolkit('signInWithPassword', { email, password })
 };
 
 export const firestoreApi = {

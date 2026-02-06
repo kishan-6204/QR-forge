@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { firebaseAuthApi, firestoreApi } from '../lib/firebaseClient';
+import { firebaseAuthApi, firestoreApi, signInWithGoogle, signOutAuth } from '../lib/firebaseClient';
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = 'qrforge-auth';
@@ -70,14 +70,15 @@ export function AuthProvider({ children }) {
     return nextSession;
   };
 
-  const signInWithGoogle = async ({ credential, requestUri }) => {
-    const nextSession = await firebaseAuthApi.signInWithGoogle(credential, requestUri);
+  const signInWithGoogleHandler = async () => {
+    const nextSession = await signInWithGoogle();
     persist(nextSession);
     await ensureProfile(nextSession);
     return nextSession;
   };
 
   const signOut = () => {
+    signOutAuth().catch(() => null);
     persist(null);
     setProfile(null);
   };
@@ -124,7 +125,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(session?.idToken),
       signIn,
       signUp,
-      signInWithGoogle,
+      signInWithGoogle: signInWithGoogleHandler,
       signOut,
       profile,
       profileLoading,

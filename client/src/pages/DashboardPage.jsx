@@ -17,6 +17,7 @@ export default function DashboardPage({ onNavigate }) {
   const { session, signOut } = useAuth();
   const [type, setType] = useState('url');
   const [values, setValues] = useState(buildState);
+  const [qrTitle, setQrTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [qrImage, setQrImage] = useState('');
 
@@ -58,10 +59,12 @@ export default function DashboardPage({ onNavigate }) {
 
       const entry = {
         id: crypto.randomUUID(),
+        title: qrTitle.trim() || 'Untitled QR',
         type,
         data: JSON.stringify(data),
         image: payload.image,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        favorite: false
       };
 
       await firestoreApi.saveQrCode({
@@ -69,6 +72,8 @@ export default function DashboardPage({ onNavigate }) {
         uid: session.uid,
         entry
       });
+
+      setQrTitle('');
 
       toast.success('QR code generated and saved!');
     } catch (error) {
@@ -127,6 +132,8 @@ export default function DashboardPage({ onNavigate }) {
         onFieldChange={handleFieldChange}
         onSubmit={generate}
         loading={loading}
+        qrTitle={qrTitle}
+        onTitleChange={setQrTitle}
         qrImage={qrImage}
         onDownload={handleDownload}
         onCopy={handleCopy}

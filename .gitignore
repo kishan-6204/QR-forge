@@ -3,6 +3,7 @@ client/node_modules
 server/node_modules
 client/dist
 .env
+!client/.env
 server/.env
 npm-debug.log*
 .DS_Store

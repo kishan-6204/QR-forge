@@ -1,114 +1,115 @@
-# QR Forge
+# 🚀 QR Forge
 
-QR Forge is a production-ready full-stack QR Code Generator with a polished React + Tailwind frontend and Express backend API.
+**QR Forge** is a production-ready full-stack QR Code platform that allows users to generate, manage, and organize QR codes with authentication, cloud storage, and a modern SaaS-style UI.
 
-## Features
+It supports multiple QR types, user accounts (Email + Google), personal QR libraries, favorites, and real-time generation — all wrapped in a polished React + Tailwind interface with an Express backend.
 
-- Generate QR codes for:
-  - Website URLs
-  - Plain text / notes
-  - Phone numbers
-  - Email addresses (with subject/body)
-  - Wi-Fi credentials (SSID, password, security)
-  - Google Maps links or location queries
+🌐 **Live App:** https://qr-forge-three.vercel.app
+
+---
+
+## ✨ Key Highlights
+
+- Full-stack SaaS architecture
+- Firebase Authentication (Email/Password + Google Sign-In)
+- Personal QR library per user
+- Favorites, search, and filters
+- Modern responsive UI
+- Cloud-hosted backend + frontend
+- Real production deployment (Vercel + Render)
+
+This is not just a QR generator — it’s a complete QR management platform.
+
+---
+
+## 🔥 Features
+
+### 🔐 Authentication
+- Email & Password login
+- Google Sign-In
+- Automatic user registration
+- Protected dashboard routes
+- Persistent sessions
+
+---
+
+### 📦 QR Generation
+
+Generate QR codes for:
+
+- 🌐 Website URLs  
+- 📝 Plain text / notes  
+- 📞 Phone numbers  
+- 📧 Email (with subject/body)  
+- 📶 Wi-Fi credentials (SSID, password, security)  
+- 📍 Google Maps links or location queries  
+
+Includes:
+
 - Live QR preview
+- QR size selector (256 / 512 / 768)
+- Color picker
+- High error correction
 - Download as PNG
-- Copy QR image to clipboard
-- QR size selector (256/512/768)
-- QR color picker
-- Responsive modern glassmorphism UI
-- Light / dark mode toggle with persistence
-- Toast notifications, loading states, and robust validation
-- REST API (`POST /api/generate`) returning base64 image
+- Copy QR image
+- Share support (with clipboard fallback)
 
-## Tech Stack
+---
 
-- **Frontend:** React, Vite, Tailwind CSS, Lucide icons, React Hot Toast
-- **Backend:** Node.js, Express, qrcode, dotenv, cors
-- **Monorepo tooling:** concurrently
+### 📁 Personal QR Library
 
-## Project Structure
+Each user gets their own dashboard:
 
-```txt
-QR-forge/
-├── client/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   └── lib/
-│   └── ...
-├── server/
-│   ├── src/
-│   └── ...
-└── package.json
-```
+- Saved QR history
+- Favorites ⭐
+- Search by title or content
+- Filter by QR type
+- Delete QRs
+- Copy original data
+- Share QRs
 
-## Setup
+---
 
-### 1) Install dependencies
+### 👤 User Profile
 
-```bash
-npm install
-npm run install:all
-```
+- Profile sidebar
+- Display name
+- Google avatar (if signed in with Google)
+- Account stats
+- Theme persistence (Light / Dark)
 
-### 2) Configure environment
+---
 
-```bash
-cp server/.env.example server/.env
-cp client/.env.example client/.env
-```
+### 🎨 UI / UX
 
-### 3) Run in development
+- Glassmorphism design
+- Tailwind CSS styling
+- Responsive layout (mobile + desktop)
+- Dark / Light mode
+- Toast notifications
+- Loading states
+- Smooth animations
 
-```bash
-npm run dev
-```
+---
 
-This launches:
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:4000`
+## 🧠 Tech Stack
 
-## API
+### Frontend
+- React
+- Vite
+- Tailwind CSS
+- Lucide Icons
+- React Hot Toast
 
-### `POST /api/generate`
+### Backend
+- Node.js
+- Express
+- QRCode
+- CORS
+- Dotenv
 
-**Request body**
-
-```json
-{
-  "type": "wifi",
-  "data": {
-    "ssid": "Office-WiFi",
-    "password": "strongpassword",
-    "security": "WPA"
-  },
-  "options": {
-    "size": 512,
-    "darkColor": "#111827",
-    "lightColor": "#ffffff"
-  }
-}
-```
-
-**Response**
-
-```json
-{
-  "image": "data:image/png;base64,...",
-  "payload": "WIFI:T:WPA;S:Office-WiFi;P:strongpassword;;"
-}
-```
-
-## Production Build
-
-```bash
-npm run build
-npm run start
-```
-
-## Notes
-
-- `client/vite.config.js` includes proxying `/api` to the backend.
-- Validation is handled on the server for every QR type.
-- QR generation uses high error correction and configurable output size.
+### Cloud / Services
+- Firebase Authentication
+- Firestore Database
+- Vercel (Frontend Hosting)
+- Render (Backend Hosting)

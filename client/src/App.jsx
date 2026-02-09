@@ -47,6 +47,11 @@ function AppRouter() {
     }
   }, [isAuthenticated, pathname]);
 
+  useEffect(() => {
+  fetch(import.meta.env.VITE_API_BASE);
+}, []);
+
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,rgba(129,140,248,0.24),transparent_36%),radial-gradient(circle_at_92%_8%,rgba(236,72,153,0.16),transparent_28%),radial-gradient(circle_at_45%_78%,rgba(34,211,238,0.12),transparent_34%)]" />

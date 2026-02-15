@@ -1,114 +1,84 @@
-import { useEffect, useState } from 'react';
-import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import AppShell from './components/AppShell';
-import AuthPage from './pages/AuthPage';
-import LandingPage from './pages/LandingPage';
-import DashboardPage from './pages/DashboardPage';
-import MyQRCodesPage from './pages/MyQRCodesPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import { ThemeProvider, useThemeContext } from './context/ThemeContext';
+import { Toaster } from "react-hot-toast";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-const getPathname = () => window.location.pathname;
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
-function AppRouter() {
-  const { isAuthenticated, profile } = useAuth();
-  const [pathname, setPathname] = useState(getPathname);
-  const { setTheme } = useThemeContext();
+import AppShell from "./components/AppShell";
+import AuthPage from "./pages/AuthPage";
+import LandingPage from "./pages/LandingPage";
+import DashboardPage from "./pages/DashboardPage";
+import MyQRCodesPage from "./pages/MyQRCodesPage";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-  const navigate = (path) => {
-    if (path !== window.location.pathname) {
-      window.history.pushState({}, '', path);
-    }
-    setPathname(path);
-  };
-
-  useEffect(() => {
-    const onPopState = () => setPathname(getPathname());
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated && pathname !== '/auth' && pathname !== '/') {
-      navigate('/');
-    }
-
-    if (isAuthenticated && (pathname === '/' || pathname === '/auth')) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, pathname]);
-
-  useEffect(() => {
-    const known = ['/', '/auth', '/dashboard', '/my-qrcodes', '/favorites', '/profile', '/settings'];
-    if (!known.includes(pathname)) {
-      navigate(isAuthenticated ? '/dashboard' : '/');
-    }
-  }, [isAuthenticated, pathname]);
-  useEffect(() => {
-    if (!profile?.theme) return;
-    setTheme(profile.theme);
-  }, [profile?.theme, setTheme]);
-
-  useEffect(() => {
-  fetch(import.meta.env.VITE_API_BASE);
-}, []);
-
-
+function AppRoutes() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,rgba(129,140,248,0.24),transparent_36%),radial-gradient(circle_at_92%_8%,rgba(236,72,153,0.16),transparent_28%),radial-gradient(circle_at_45%_78%,rgba(34,211,238,0.12),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.55),transparent_28%,rgba(255,255,255,0.2))] dark:bg-[linear-gradient(to_bottom,rgba(15,23,42,0.55),transparent_24%,rgba(2,6,23,0.55))]" />
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/auth" element={<AuthPage />} />
 
-      <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
-
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
-        {pathname === '/' && <LandingPage />}
-        {pathname === '/auth' && <AuthPage onAuthenticated={() => navigate('/dashboard')} />}
-
-        {pathname === '/dashboard' && (
-          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <AppShell onNavigate={navigate} currentPath={pathname}>
-              <DashboardPage onNavigate={navigate} />
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <DashboardPage />
             </AppShell>
           </ProtectedRoute>
-        )}
+        }
+      />
 
-        {pathname === '/my-qrcodes' && (
-          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <AppShell onNavigate={navigate} currentPath={pathname}>
-              <MyQRCodesPage onNavigate={navigate} />
+      <Route
+        path="/my-qrcodes"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <MyQRCodesPage />
             </AppShell>
           </ProtectedRoute>
-        )}
+        }
+      />
 
-        {pathname === '/favorites' && (
-          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <AppShell onNavigate={navigate} currentPath={pathname}>
-              <MyQRCodesPage onNavigate={navigate} initialFilter="favorites" title="Favorites" />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <MyQRCodesPage initialFilter="favorites" title="Favorites" />
             </AppShell>
           </ProtectedRoute>
-        )}
+        }
+      />
 
-        {pathname === '/profile' && (
-          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <AppShell onNavigate={navigate} currentPath={pathname}>
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <AppShell>
               <ProfilePage />
             </AppShell>
           </ProtectedRoute>
-        )}
+        }
+      />
 
-        {pathname === '/settings' && (
-          <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
-            <AppShell onNavigate={navigate} currentPath={pathname}>
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <AppShell>
               <SettingsPage />
             </AppShell>
           </ProtectedRoute>
-        )}
-      </main>
-    </div>
+        }
+      />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
@@ -116,7 +86,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppRouter />
+        <BrowserRouter>
+          <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
+          <AppRoutes />
+        </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -3,19 +3,20 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppShell from './components/AppShell';
 import AuthPage from './pages/AuthPage';
+import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import MyQRCodesPage from './pages/MyQRCodesPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import useTheme from './hooks/useTheme';
+import { ThemeProvider, useThemeContext } from './context/ThemeContext';
 
 const getPathname = () => window.location.pathname;
 
 function AppRouter() {
   const { isAuthenticated, profile } = useAuth();
   const [pathname, setPathname] = useState(getPathname);
-  const { darkMode, setDarkMode } = useTheme(profile?.theme);
+  const { setTheme } = useThemeContext();
 
   const navigate = (path) => {
     if (path !== window.location.pathname) {
@@ -31,8 +32,8 @@ function AppRouter() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/auth') {
-      navigate('/auth');
+    if (!isAuthenticated && pathname !== '/auth' && pathname !== '/') {
+      navigate('/');
     }
 
     if (isAuthenticated && (pathname === '/' || pathname === '/auth')) {
@@ -41,11 +42,15 @@ function AppRouter() {
   }, [isAuthenticated, pathname]);
 
   useEffect(() => {
-    const known = ['/auth', '/dashboard', '/my-qrcodes', '/favorites', '/profile', '/settings'];
+    const known = ['/', '/auth', '/dashboard', '/my-qrcodes', '/favorites', '/profile', '/settings'];
     if (!known.includes(pathname)) {
-      navigate(isAuthenticated ? '/dashboard' : '/auth');
+      navigate(isAuthenticated ? '/dashboard' : '/');
     }
   }, [isAuthenticated, pathname]);
+  useEffect(() => {
+    if (!profile?.theme) return;
+    setTheme(profile.theme);
+  }, [profile?.theme, setTheme]);
 
   useEffect(() => {
   fetch(import.meta.env.VITE_API_BASE);
@@ -60,6 +65,7 @@ function AppRouter() {
       <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
 
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        {pathname === '/' && <LandingPage />}
         {pathname === '/auth' && <AuthPage onAuthenticated={() => navigate('/dashboard')} />}
 
         {pathname === '/dashboard' && (
@@ -97,7 +103,7 @@ function AppRouter() {
         {pathname === '/settings' && (
           <ProtectedRoute fallback={<AuthPage onAuthenticated={() => navigate('/dashboard')} />}>
             <AppShell onNavigate={navigate} currentPath={pathname}>
-              <SettingsPage darkMode={darkMode} setDarkMode={setDarkMode} />
+              <SettingsPage />
             </AppShell>
           </ProtectedRoute>
         )}
@@ -108,8 +114,10 @@ function AppRouter() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppRouter />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

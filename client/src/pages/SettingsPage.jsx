@@ -3,9 +3,11 @@ import toast from 'react-hot-toast';
 import { Palette, Save, Settings2 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
+import { useThemeContext } from '../context/ThemeContext';
 
-export default function SettingsPage({ darkMode, setDarkMode }) {
+export default function SettingsPage() {
   const { profile, profileLoading, updateProfile } = useAuth();
+  const { darkMode, toggleTheme } = useThemeContext();
   const [defaultQrColor, setDefaultQrColor] = useState('#111827');
   const [defaultQrSize, setDefaultQrSize] = useState(512);
   const [saving, setSaving] = useState(false);
@@ -18,13 +20,12 @@ export default function SettingsPage({ darkMode, setDarkMode }) {
 
   const handleThemeToggle = async () => {
     const nextTheme = darkMode ? 'light' : 'dark';
-    const previous = darkMode;
-    setDarkMode(!darkMode);
+    toggleTheme();
     try {
       await updateProfile({ theme: nextTheme });
       toast.success(`Theme set to ${nextTheme}`);
     } catch (error) {
-      setDarkMode(previous);
+      toggleTheme();
       toast.error(error.message || 'Failed to update theme');
     }
   };

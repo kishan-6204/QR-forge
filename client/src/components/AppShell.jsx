@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useThemeContext } from '../context/ThemeContext';
 import ProfileSidebar from './ProfileSidebar';
+import ThemeToggle from './ThemeToggle';
 
 const getInitials = (value) => {
   if (!value) return 'QF';
@@ -12,6 +14,7 @@ const getInitials = (value) => {
 
 export default function AppShell({ children, onNavigate, currentPath }) {
   const { profile, session } = useAuth();
+  const { darkMode, toggleTheme } = useThemeContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const displayName = useMemo(() => {
@@ -35,6 +38,7 @@ export default function AppShell({ children, onNavigate, currentPath }) {
           <button type="button" className="btn-secondary hidden sm:inline-flex" onClick={() => onNavigate('/my-qrcodes')}>
             My QR Codes
           </button>
+           <ThemeToggle darkMode={darkMode} onToggle={toggleTheme} />
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
